@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期末求生記</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+/* 封面 */
+#cover {
+  width: 100%;
+  height: 100vh;
+  background: url("images/cover.jpg") no-repeat center center;
+  background-size: cover;
+  position: relative;
+  cursor: pointer;
+}
+#cover h1 {
+  position: relative;
+  z-index: 1;
+  color: white;
+  padding-top: 200px;
+  font-size: 48px;
+}
+
+/* 影片 */
+#video-container {
+  width: 100%;
+  height: 100vh;
+  display: none;
+  background-color: black;
+}
+#videoPlayer {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 選擇畫面 */
+#choices {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: none;
+  z-index: 10;
+  background-color: black;
+}
+#choices img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 透明熱區 */
+.hotzone {
+  position: absolute;
+  cursor: pointer;
+  z-index: 20;
+  background-color: rgba(0,0,0,0); /* 完全透明 */
+}
+
+/* 結尾圖片 */
+#endImage {
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="cover"><h1></h1></div>
+
+<div id="video-container">
+  <video id="videoPlayer"></video>
+</div>
+
+<div id="choices">
+  <img src="" alt="選擇畫面">
+</div>
+
+<img id="endImage">
+
+<script>
+// DOM
+const cover = document.getElementById('cover');
+const videoContainer = document.getElementById('video-container');
+const video = document.getElementById('videoPlayer');
+const choices = document.getElementById('choices');
+const endImage = document.getElementById('endImage');
+
+// 流程資料 (已修正 A 結局流程)
+const flow = {
+  intro: { src:'videos/前言.mp4', next:'select' },
+
+select: { type:'choice', img:'images/劇本選擇.jpg', options:[
+    // A文學 (左側橘色雲朵) - 再次往左上方微調
+    { next:'A文學', top:'15%', left:'13%', width:'22%', height:'22%' }, 
+    // B程設 (右側藍色雲朵) - 再次往左上方微調
+    { next:'B程設', top:'35%', left:'35%', width:'25%', height:'25%' } 
+  ]},
+
+  'A文學': { src:'videos/A文學.mp4', next:'A選擇' },
+  'A選擇': { type:'choice', img:'images/A選擇.jpg', options:[
+    // 「靠自己」 (左側圓形按鈕) - 再次往左移動
+    { next:'A結局', top:'70%', left:'8%', width:'25%', height:'25%' },
+    // 「尋求幫助」 (右側圓形按鈕) - 再次往右移動
+    { next:'D友情', top:'70%', left:'67%', width:'25%', height:'25%' } 
+  ]},
+  
+  // *** 修正後：A結局 變成 播放影片，next 到圖片畫面 ***
+  'A結局': { src:'videos/A結局.mp4', next:'A結尾' }, 
+  'A結尾': { endImg:'images/A結尾.jpg' },             // <--- 影片播畢後，顯示結尾圖片
+
+  // D 路線 (假設 D結局 也是直接圖片，如果 D結局也有影片，也要拆成兩步)
+  'D友情': { src:'videos/D友情.mp4', next:'D選擇' },
+  'D選擇': { type:'choice', img:'images/D選擇.jpg', options:[
+    { next:'D結局', top:'70%', left:'8%', width:'25%', height:'25%' },
+    { next:'G靈異', top:'70%', left:'67%', width:'25%', height:'25%' }
+  ]},
+  'D結局': { src:'videos/D結局.mp4', next:'D結尾' }, // 如果 D結局有影片，要改成 D結局: {src: ..., next: 'D結尾'}
+  'D結尾': { endImg:'images/D結尾.jpg' },
+
+  'G靈異': { src:'videos/G結局.mp4', next:'G結局' },
+  'G結局': { endImg:'images/G結尾.jpg' },
+
+  // B 路線 (假設 B結局 和 E結局 也是直接圖片)
+  'B程設': { src:'videos/B程設.mp4', next:'B選擇' },
+  'B選擇': { type:'choice', img:'images/B選擇.jpg', options:[
+    { next:'C療癒', top:'70%', left:'8%', width:'25%', height:'25%' },
+    { next:'B作弊', top:'70%', left:'67%', width:'25%', height:'25%' }
+  ]},
+  'C療癒': { src:'videos/C療癒.mp4', next:'C結局影片' }, 
+  'C結局': { src:'videos/C結局.mp4', next:'C結尾' }, // 更名以避免混淆
+  'C結尾': { endImg:'images/C結尾.jpg' },
+
+  'B作弊': { src:'videos/B作弊.mp4', next:'B選擇2' },
+  'B選擇2': { type:'choice', img:'images/B選擇2.jpg', options:[
+    { next:'B結局', top:'70%', left:'8%', width:'25%', height:'25%' },
+    { next:'E魔王', top:'70%', left:'67%', width:'25%', height:'25%' }
+  ]},
+  'B結局': { src:'videos/B結局.mp4', next:'B結尾' }, 
+  'B結尾': { endImg:'images/B結尾.jpg' },
+
+  // E 魔王路線你原本就設計成影片+圖片兩步，因此沒有問題
+  'E魔王': { src:'videos/E魔王.mp4', next:'E結局' }, 
+  'E結局': { endImg:'images/E結尾.jpg' }
+};
+
+// 封面點擊開始
+cover.addEventListener('click',()=>{cover.style.display='none'; playStep('intro');});
+
+// 播放步驟
+function playStep(key){
+  endImage.style.display='none';
+  const step = flow[key];
+  if(!step) return;
+
+  console.log("播放步驟:", key);
+
+  if(step.src){
+    videoContainer.style.display='block';
+    video.src = step.src;
+    video.load();
+    video.play();
+    video.onended = () => {
+      videoContainer.style.display='none';
+      if(step.next) playStep(step.next);
+    };
+    return;
+  }
+
+  if(step.type==='choice'){
+    showChoices(step);
+    return;
+  }
+
+  if(step.endImg){
+    endImage.src = step.endImg;
+    endImage.style.display='block';
+    endImage.onclick = resetToCover;
+    return;
+  }
+}
+
+// 顯示透明熱區
+function showChoices(step){
+  choices.style.display='block';
+  choices.innerHTML = `<img src="${step.img}" alt="選擇畫面">`;
+
+  step.options.forEach(opt=>{
+    const zone = document.createElement('div');
+    zone.className = 'hotzone';
+    zone.dataset.next = opt.next;
+    zone.style.top = opt.top;
+    zone.style.left = opt.left;
+    zone.style.width = opt.width;
+    zone.style.height = opt.height;
+    zone.onclick = ()=>{
+      choices.style.display='none';
+      playStep(opt.next);
+    };
+    choices.appendChild(zone);
+  });
+}
+
+// 回到封面
+function resetToCover(){
+  endImage.style.display='none';
+  cover.style.display='block';
+}
+</script>
+</body>
+</html>

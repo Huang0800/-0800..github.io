@@ -1,0 +1,151 @@
+/* 全頁樣式 */
+body {
+  font-family: sans-serif;
+  background-color: black; /* 整個網頁黑色底 */
+  color: white;            /* 文字顯示白色 */
+  text-align: center;
+  margin: 0;               /* 去掉預設 margin */
+  padding: 0;              /* 去掉空白 */
+}
+
+
+/* 封面樣式 */
+#cover {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* 填滿整個視窗高度 */
+  padding: 80px 20px;
+  border-radius: 20px;
+  color: rgb(0, 0, 0);
+  text-align: center;
+
+  /* 背景圖 */
+  background: url("images/cover.jpg") no-repeat center center;
+  background-size: cover;
+  overflow: hidden;
+}
+
+/* 加一層黑色半透明遮罩 */
+#cover::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  border-radius: 20px;
+  z-index: 0;
+  pointer-events: none; /* 讓遮罩不阻擋點擊 */
+}
+
+/* 讓文字與按鈕在遮罩上方 */
+#cover h1,
+#cover button {
+  position: relative;
+  z-index: 1;
+}
+
+h1 {
+  font-size: 48px;
+  margin-bottom: 40px;
+}
+
+/* 按鈕樣式 */
+button {
+  margin: 10px;
+  padding: 15px 30px;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: #4caf50;
+  color: white;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* 隱藏元件用 */
+.hidden {
+  display: none;
+}
+
+
+
+#video-container {
+  width: 100%;
+  height: 100vh;
+  background-color: black;
+  margin: 0 auto;
+}
+
+#choices {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  z-index: 10; /* 確保在影片容器上方 */
+  background-color: black; /* 加上黑色背景 */
+}
+
+#choices img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+
+
+
+
+#choices button {
+  position: absolute;
+  z-index: 20;        /* 按鈕在圖片上方 */
+  padding: 10px 20px;
+  font-size: 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.8);
+}
+
+
+
+/* 文學選項熱區 */
+.literature {
+  position: absolute;
+  top: 23%;     /* 雲朵大約在畫面上方 */
+  left: 18%;    /* 稍微靠左 */
+  width: 18%;   /* 控制點擊範圍大小 */
+  height: 18%;
+  cursor: pointer;
+  background-color: rgba(255, 0, 0, 0.3); /* 暫時顯示範圍 */
+  z-index: 20;
+}
+
+/* 程設選項熱區 */
+.programming {
+  position: absolute;
+  top: 31%;     /* 稍微比文學低一點 */
+  left: 60%;    /* 雲朵偏右 */
+  width: 18%;
+  height: 18%;
+  cursor: pointer;
+  background-color: rgba(0, 0, 255, 0.3); /* 暫時顯示範圍 */
+  z-index: 20;
+}
+
+
+/* 結束後顯示的照片樣式 */
+#endImage {
+  width: 100%;
+  height: 100vh;      /* 跟封面與影片一樣大小 */
+  object-fit: cover;  /* 讓照片撐滿畫面 */
+  border-radius: 20px;
+  display: none;      /* 一開始隱藏 */
+}
+
+
+
